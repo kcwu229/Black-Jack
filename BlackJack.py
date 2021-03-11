@@ -49,7 +49,7 @@ def scoring():
         if a == 5:                                           # Situation 1: card exhibition on every players
             delay()
             print(player, Player_card[player], " total point:", sum)
-        elif zzz == 100:  # 玩家hit 牌                        # Situation 2: when user's hit
+        elif zzz == 100:  # 玩家hit 牌                        # Situation 2: when players hit
             if player == Player1:
                 print(player, "decides to Hit, and receives", draw, "total:", sum)
             elif player != Player1:  # cpu玩家hit 牌
@@ -88,11 +88,12 @@ def scoring():
     def delay():                                              # speed of game flow
         if player == Player1:
             print("waiting ..............")
-            time.sleep(2)
+            #time.sleep(1)
 
     Player_point = {Player1: 0, "player 2": 0, "player 3": 0, "player 4": 0, "Banker": 0}
     Player_card = {Player1: "", "player 2": "", "player 3": "", "player 4": "", "Banker": ""}
     minus = [Player1, "player 2", "player 3", "player 4", "Banker"]  # end looping  of useless meessage: (stand. stand. stand)
+    minus_2 = [Player1, "player 2", "player 3", "player 4", "Banker"]
     print("\n\nNew Round\nWith Card Exhibiting")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 1 Card Exhibtion & Covered~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,30 +108,33 @@ def scoring():
     print("\n\n")
     HitNSt = True
     while HitNSt == True:
-        ask = input("stand or hit?       :").lower()
-        if ask == "hit":                            # independent event1: user hit
+        action = input("stand or hit?       :").lower()
+        if action == "hit":
             zzz = 100  # enable hit 牌情況出現
             for player in minus:                    # ask again (stand or hit)-- stop until answering stand
                 if player == Player1:
                     hit()  # 玩家hit 牌
-                elif player != Player1 and Player_point[player] < 15:  # 2 situations : 1) > 15: stand 2) <15: hit --> 2 situations again --> looping
+                elif player != Player1 and Player_point[player] < 15:  # 2 situations : 1) > 15: stand
                     hit()  # 玩家hit 牌
-                elif player != Player1 and Player_point[player] >= 15:
+                elif player != Player1 and Player_point[player] >= 15:                # 2) <15: hit & 2 situations again
                     print(player, "decides to Stand")
                     minus.remove(player)
                     delay()
-        elif ask == "stand":                       # independent event2: user stand
-            zzz = 100                              # attain situation 2: conclusion when user's hit
+
+
+        elif action == "stand":
+            zzz = 100                              # attain situation 2: conclusion when players hit
             HitNSt = False
             fff = 3
             while fff > 0:
                 for player in minus:
-                    if len(minus) < 2:
-                        fff = fff - 999  # 如果全部都stand就停
+                    if len(minus) < 2:   # items in dict() < 2
+                        fff = fff - 999  # sop looping when all stand
                     elif player == Player1:
                         print(player, "decides to Stand")
+                        minus.remove(player)
                         delay()
-                    elif player != Player1:      # 2 situations : 1) > 15: stand 2) <15: hit --> 2 situations again --> looping
+                    elif player != Player1:      # 2 situations : 1) > 15: stand 2) <15: hit --> 2 situations again
                         if Player_point[player] >= 15:
                             print(player, "decides to Stand")
                             # remove to prevent repeating printing (not removing from dict(player:Point)),
@@ -140,14 +144,29 @@ def scoring():
                         elif Player_point[player] < 15:
                             hit()
 
-        elif ask != "hit" and ask != "stand":    # prevent bug
+        elif action != "hit" and action != "stand":    # prevent bug
             print("Sorry, I don't understand.")
     zzz = 0                                # close the situation 2
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 3 Point Judgement~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    print("Let see who is the winner")  # When 21 does not appear
+    largest = 0
+    lst = list()
+    for k, v in Player_point.items():             # Obtain the max. pt. from players
+        if v > 21:
+            print(k, "loses as Bust")
+            continue
+        lst.append((v, k))
+    a, b = max(lst)
+
+    print("Finally, we get the winner")          # Consider with more than one player having max.pt.
+    for player in Player_point:
+        if Player_point[player] == a:
+            print(player, "wins the BlackJack")
 
 
     print("\n\nResult:")
+
     for player in Player_point:
         print(player, "has:", Player_card[player], "             with total point:", Player_point[player])
         time.sleep(0.5)
