@@ -1,5 +1,5 @@
-import random  # 隨機效果
-import time  # 計時效果
+import random
+import time        # control the speed of the game
 
 suit = ["Spade", "Heart", "Club", "Diamond"]
 face = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
@@ -31,25 +31,25 @@ def game():                                           # Game Intro
 def scoring():
     CardSet()
     PointValue()
-    def card_expose():                                         # Card with Exhibition
+    def card_expose():
         draw = random.choice(list(point))
-        Player_card[player] = Player_card[player] + " " + draw   # extract corresponding value of key in dict()
+        Player_card[player] = Player_card[player] + " " + draw                  # extract corresponding value of key in dict()
         val = point[draw]
         if val == "(1, 11)":
-            if Player_point[player] > 10:  # 用total點數決定ace既點數
+            if Player_point[player] > 10:                                       # point determination of Ace
                 pt = 1
             else:
                 pt = 11
         else:
             pt = int(val)
-        point.pop(draw, None)                   # attain card drawing without replacement
+        point.pop(draw, None)                                                   # attain card drawing without replacement
         sum = Player_point.get(player) + pt
         Player_point[player] = sum
-        time.sleep(1)   # ~~~~~~~~~~~~~followings are difference conclusions among the results~~~~~~~~~~~~~~~~~~~~~~~~~                                           # Situation 1: card exhibition on every players
+        time.sleep(1)
         delay()
         print(player, Player_card[player], " total point:", sum)
 
-    def cal_unknown():                                       # Card with covered
+    def cal_unknown():                                                          # Card with covered
         for player in Player_point:
             if player != Player1:
                 print(player, ":", Player_card[player], "+ ?, total point:", Player_point[player], "+ ?")
@@ -73,31 +73,31 @@ def scoring():
                 continue
             time.sleep(1)
 
-    def hit():                                         # Card with Exhibition
+    def hit():
         draw = random.choice(list(point))
-        Player_card[player] = Player_card[player] + " " + draw   # extract corresponding value of key in dict()
+        Player_card[player] = Player_card[player] + " " + draw                                  # marking card into dict()
         val = point[draw]
         if val == "(1, 11)":
-            if Player_point[player] > 10:  # 用total點數決定ace既點數
+            if Player_point[player] > 10:                                                       # point determination of Ace
                 pt = 1
             else:
                 pt = 11
         else:
             pt = int(val)
-        point.pop(draw, None)                   # attain card drawing without replacement
+        point.pop(draw, None)                                                                   # attain card drawing without replacement
         sum = Player_point.get(player) + pt
         Player_point[player] = sum
-        time.sleep(1)   # ~~~~~~~~~~~~~followings are difference conclusions among the results~~~~~~~~~~~~~~~~~~~~~~~~~                                           # Situation 1: card exhibition on every players
+        time.sleep(1)
         if player == Player1:
             print(player, "decides to Hit, and receives", draw, "total:", sum)
-        elif player != Player1:  # cpu玩家hit 牌
+        elif player != Player1:
             delay()
             print(player, "decides to Hit, and receives", draw)
 
     def delay():                                              # speed of game flow
         if player == Player1:
             print("waiting ..............")
-            #time.sleep(1)
+            time.sleep(1)
 
     Player_point = {Player1: 0, "player 2": 0, "player 3": 0, "player 4": 0, "Banker": 0}
     Player_card = {Player1: "", "player 2": "", "player 3": "", "player 4": "", "Banker": ""}
@@ -107,9 +107,8 @@ def scoring():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 1 Card Exhibtion & Covered~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     for player in Player_point:
-        a = 5                                    # attain situation 1: result during card exhibition on every players
         card_expose()
-        a = 0                                    # close
+
     print("\n\nWith Card Covered")
     cal_unknown()
 
@@ -118,16 +117,16 @@ def scoring():
     while len(minus) > 1:
         action = input("stand or hit?       :").lower()
         if action == "hit":
-            for player in minus:                    # ask again (stand or hit)-- stop until answering stand
+            for player in minus:
                 if player == Player1:
-                    hit()  # 玩家hit 牌
-                elif player != Player1 and Player_point[player] < 15:  # 2 situations : 1) > 15: stand
-                    hit()  # 玩家hit 牌
-                elif player != Player1 and Player_point[player] >= 15:                # 2) <15: hit & 2 situations again
+                    hit()
+                elif player != Player1 and Player_point[player] < 15:
+                    hit()
+                elif player != Player1 and Player_point[player] >= 15:
                     print(player, "decides to Stand")
                     minus.remove(player)
                     delay()
-        elif action == "stand":                             # attain situation 2: conclusion when players hit
+        elif action == "stand":
             while len(minus) > 0:
                 for player in minus:
                     if player == Player1:
@@ -161,7 +160,7 @@ def scoring():
     print("\n\nFinally, we get the winner:")          # Consider with more than one player having max.pt.
     for player in Player_point:
         if Player_point[player] == a:
-            print(player, a)
+            print(player, "with points:", a)
 
     print("\n\nResult:")
     for player in Player_point:
