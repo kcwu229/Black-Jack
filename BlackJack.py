@@ -31,7 +31,7 @@ def game():                                           # Game Intro
 def scoring():
     CardSet()
     PointValue()
-    def common_cal():                                         # Card with Exhibition
+       def card_expose():                                         # Card with Exhibition
         draw = random.choice(list(point))
         Player_card[player] = Player_card[player] + " " + draw   # extract corresponding value of key in dict()
         val = point[draw]
@@ -45,16 +45,9 @@ def scoring():
         point.pop(draw, None)                   # attain card drawing without replacement
         sum = Player_point.get(player) + pt
         Player_point[player] = sum
-        time.sleep(1)   # ~~~~~~~~~~~~~followings are difference conclusions among the results~~~~~~~~~~~~~~~~~~~~~~~~~
-        if a == 5:                                           # Situation 1: card exhibition on every players
-            delay()
-            print(player, Player_card[player], " total point:", sum)
-        elif zzz == 100:  # 玩家hit 牌                        # Situation 2: when players hit
-            if player == Player1:
-                print(player, "decides to Hit, and receives", draw, "total:", sum)
-            elif player != Player1:  # cpu玩家hit 牌
-                delay()
-                print(player, "decides to Hit, and receives", draw)
+        time.sleep(1)   # ~~~~~~~~~~~~~followings are difference conclusions among the results~~~~~~~~~~~~~~~~~~~~~~~~~                                           # Situation 1: card exhibition on every players
+        delay()
+        print(player, Player_card[player], " total point:", sum)
 
     def cal_unknown():                                       # Card with covered
         for player in Player_point:
@@ -80,10 +73,26 @@ def scoring():
                 continue
             time.sleep(1)
 
-    def hit():
-        time.sleep(1)
-        delay()
-        common_cal()
+       def hit():                                         # Card with Exhibition
+        draw = random.choice(list(point))
+        Player_card[player] = Player_card[player] + " " + draw   # extract corresponding value of key in dict()
+        val = point[draw]
+        if val == "(1, 11)":
+            if Player_point[player] > 10:  # 用total點數決定ace既點數
+                pt = 1
+            else:
+                pt = 11
+        else:
+            pt = int(val)
+        point.pop(draw, None)                   # attain card drawing without replacement
+        sum = Player_point.get(player) + pt
+        Player_point[player] = sum
+        time.sleep(1)   # ~~~~~~~~~~~~~followings are difference conclusions among the results~~~~~~~~~~~~~~~~~~~~~~~~~                                           # Situation 1: card exhibition on every players
+        if player == Player1:
+            print(player, "decides to Hit, and receives", draw, "total:", sum)
+        elif player != Player1:  # cpu玩家hit 牌
+            delay()
+            print(player, "decides to Hit, and receives", draw)
 
     def delay():                                              # speed of game flow
         if player == Player1:
@@ -106,11 +115,9 @@ def scoring():
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 2 Hit and Stand~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     print("\n\n")
-    HitNSt = True
-    while HitNSt == True:
+        while len(minus) > 1:
         action = input("stand or hit?       :").lower()
         if action == "hit":
-            zzz = 100  # enable hit 牌情況出現
             for player in minus:                    # ask again (stand or hit)-- stop until answering stand
                 if player == Player1:
                     hit()  # 玩家hit 牌
@@ -120,33 +127,24 @@ def scoring():
                     print(player, "decides to Stand")
                     minus.remove(player)
                     delay()
-
-
-        elif action == "stand":
-            zzz = 100                              # attain situation 2: conclusion when players hit
-            HitNSt = False
-            fff = 3
-            while fff > 0:
+        elif action == "stand":                             # attain situation 2: conclusion when players hit
+            while len(minus) > 0:
                 for player in minus:
-                    if len(minus) < 2:   # items in dict() < 2
-                        fff = fff - 999  # sop looping when all stand
-                    elif player == Player1:
+                    if player == Player1:
                         print(player, "decides to Stand")
                         minus.remove(player)
                         delay()
-                    elif player != Player1:      # 2 situations : 1) > 15: stand 2) <15: hit --> 2 situations again
+                    elif player != Player1:
                         if Player_point[player] >= 15:
+                            delay()
                             print(player, "decides to Stand")
-                            # remove to prevent repeating printing (not removing from dict(player:Point)),
-                            # but from list called minus with same player name instead (need dict to calculate point)
                             minus.remove(player)
                             delay()
                         elif Player_point[player] < 15:
                             hit()
-
-        elif action != "hit" and action != "stand":    # prevent bug
+                            delay()
+        else:    # prevent bug
             print("Sorry, I don't understand.")
-    zzz = 0                                # close the situation 2
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 3 Point Judgement~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     print("Let see who is the winner")  # When 21 does not appear
@@ -162,7 +160,7 @@ def scoring():
     print("Finally, we get the winner")          # Consider with more than one player having max.pt.
     for player in Player_point:
         if Player_point[player] == a:
-            print(player, "wins the BlackJack")
+            print(player, a)
 
 
     print("\n\nResult:")
