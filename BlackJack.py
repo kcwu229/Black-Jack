@@ -31,7 +31,7 @@ def game():                                           # Game Intro
 def scoring():
     CardSet()
     PointValue()
-       def card_expose():                                         # Card with Exhibition
+    def card_expose():                                         # Card with Exhibition
         draw = random.choice(list(point))
         Player_card[player] = Player_card[player] + " " + draw   # extract corresponding value of key in dict()
         val = point[draw]
@@ -73,7 +73,7 @@ def scoring():
                 continue
             time.sleep(1)
 
-       def hit():                                         # Card with Exhibition
+    def hit():                                         # Card with Exhibition
         draw = random.choice(list(point))
         Player_card[player] = Player_card[player] + " " + draw   # extract corresponding value of key in dict()
         val = point[draw]
@@ -108,14 +108,14 @@ def scoring():
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 1 Card Exhibtion & Covered~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     for player in Player_point:
         a = 5                                    # attain situation 1: result during card exhibition on every players
-        common_cal()
+        card_expose()
         a = 0                                    # close
     print("\n\nWith Card Covered")
     cal_unknown()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 2 Hit and Stand~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     print("\n\n")
-        while len(minus) > 1:
+    while len(minus) > 1:
         action = input("stand or hit?       :").lower()
         if action == "hit":
             for player in minus:                    # ask again (stand or hit)-- stop until answering stand
@@ -146,8 +146,9 @@ def scoring():
         else:    # prevent bug
             print("Sorry, I don't understand.")
 
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Part 3 Point Judgement~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    print("Let see who is the winner")  # When 21 does not appear
+    print("\n\nLet see who is the winner")  # When 21 does not appear
     largest = 0
     lst = list()
     for k, v in Player_point.items():             # Obtain the max. pt. from players
@@ -157,14 +158,12 @@ def scoring():
         lst.append((v, k))
     a, b = max(lst)
 
-    print("Finally, we get the winner")          # Consider with more than one player having max.pt.
+    print("\n\nFinally, we get the winner:")          # Consider with more than one player having max.pt.
     for player in Player_point:
         if Player_point[player] == a:
             print(player, a)
 
-
     print("\n\nResult:")
-
     for player in Player_point:
         print(player, "has:", Player_card[player], "             with total point:", Player_point[player])
         time.sleep(0.5)
