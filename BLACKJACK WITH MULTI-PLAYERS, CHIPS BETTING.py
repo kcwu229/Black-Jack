@@ -1,271 +1,217 @@
 import random
-
+import numpy as np
+import time
 
 def restore():
-    global card
-    card = dict()
+    global suit, face, foul_lst, bonus
+    bonus = 0
+    foul_lst = []
     face = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
-    fv = ["(1, 11)", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10", "10", "10"]
-    for s in ["♠", "♥", "♣", "♦"]:
-        for i in range(13):
-            card[s + face[i]] = fv[i]
-    global name_pt, name_card, sum, remove_lst
-    sum = 0
-    name_pt = {}
-    name_card = {}
-    remove_lst = []
+    suit = ["♠", "♥", "♣", "♦"]
 
+    player_setting()
 
 def player_setting():  # Restore in Each NEW Game
-    global player_lst
-    player_lst = []
+    global name_lst, name_chip
+    name_chip = {}
     running = True
     while running:
         try:
-            player_num = input(
-                '''Welcome to the BlackJack World, \nhow many players you want to create?(Please enter the number from 2 to 9)''')
-            number = int(player_num)
-            if number > 1 and number < 10:
-                for player in list((range(number))):
-                    name = input("Player " + str(player) + ", please enter your name:")
-                    player_lst.append(name)
-                    running = False
-                print("So we have the followings players:", player_lst, "\n\nThe game will start after 3 seconds")
+            num = int(input(f"enter number of player (min:2, max:9):    "))
+            if num > 1 and num < 10:
+                name_lst = [input(f"Player {i}, enter your name:   ") for i in range(num)]
+                running = False
+            print(f"Followings players:{name_lst}. Game is starting soon\n\n")
+
         except:
-            print("sorry, I don't understand what you mean, please try again!")
-    global survivor_chips
-    survivor_chips = {}
-    for player in player_lst:
-        survivor_chips[player] = 500
+            print("Sorry, please try again!")
 
+    for player in name_lst:
+        name_chip[player] = 500
+    new_round()
 
-def spacing():
-    print("\n")
+def add_(item, amount):
+    item += amount
+    return item
 
-
-def starting():
-    for k, v in survivor_chips.items():
-        remove_lst.append(k)
-    print("Dealer is now distributing cards...\n\n")
-    global bonus
-    bonus = 0
-    print("collecting 50 chips as entrance fee from all players")
-    for player in survivor_chips:
-        if survivor_chips[player] < 50:
-            print("sorry to say that ", player, "does not have qualification to join the game")
-            survivor_chips.pop(player)
+def new_round():
+    global remain_lst, bonus, name_pt, name_card, deck
+    deck = [(s + " " + f) for s in suit for f in face]
+    random.shuffle(deck)
+    name_pt = {}
+    name_card = {}
+    print("New round acquires 50 chips")
+    remain_lst = [player for player in name_lst if player not in foul_lst]
+    for player in remain_lst:
+        if name_chip[player] <= 50:
+            print(f" Sorry, {player} is fouled")
+            foul_lst.append(player)
             continue
-        survivor_chips[player] -= 50
-        bonus += 50
+        if name_chip[player] > 50:
+            print(f"{player} pays 50 chips to join the game")
+            name_chip[player] -= 50
+            bonus += 50
 
+    for i in range(2):
+        print("\nDealer is now distributing cards")
+        for player in remain_lst:
+            if player not in foul_lst:
+                drawing(player, name_card)
+            print(f"{player}: {name_card[player]}, {name_pt[player]}")
+            
+    hit_and_stand(foul_lst, name_lst, name_card, name_chip)
 
-def drawing():  # Before hit and stand
-    for player in survivor_chips:
-        global draw  # make a local variable global
-        draw = random.choice(list(card))
+def drawing(player, name_card):  # Before hit and stand
+    global card
+    if player not in foul_lst:
+        card = deck.pop()
         if player not in name_card:
-            name_card[player] = draw
+            name_card[player] = card
         elif player in name_card:
-            name_card[player] += "," + draw
-        val = card[draw]
-        if player not in name_pt:
-            name_pt[player] = 0
-        if val == "(1, 11)":
-            if name_pt[player] > 10:
-                pt = 1
-            else:
-                pt = 11
+            name_card[player] += ",  " + card
+        point(player, name_pt, card)
+
+def point(player, name_pt, card):
+    if player not in name_pt:
+        name_pt[player] = 0
+    value = card.split(' ')[-1]
+    if value.isdigit():
+        pt = int(value)
+    else:
+        if value == "A":
+            pt = 11
         else:
-            pt = int(val)
-        card.pop(draw, None)  # drawing without replacement
-        name_pt[player] += pt
-        print(player, name_card[player], "total point:", name_pt[player])
+            pt = 10
+    name_pt[player] += pt
 
+def hit_and_stand(foul_lst, name_lst, name_card, name_chip):
+    global stand_lst, bonus
+    stand_lst = []
+    give_up_lst = []
+    remain_lst = [player for player in name_lst if player not in foul_lst]
+    print(remain_lst)
+    while len(give_up_lst) < len(remain_lst):
+        print("\n")
+        for player in remain_lst:
+            if player not in stand_lst:
+                ask = input(f"{player}, would you like to stand or hit?  Current pts: {name_pt[player]}   ").lower()
+                if ask == "hit" or ask == "h":
+                    drawing(player, name_card)
+                    print(f"{player} hits, get{card}")
 
-def hit_and_stand():
-    for player in remove_lst:
-        action = input(player + " you have " + " " + str(
-            name_pt[player]) + "  points  " + ", Would you stand, hit or surrender?   ").lower()
-        while action != "hit" and action != "stand" and action != "surrender":
-            print("Sorry, I don't understand.")
-            action = input(player + "Would you stand, hit or surrender?").lower()
+                elif ask == "stand" or ask == "s":
+                    print(f"{player} stands")
+                    stand_lst.append(player)
 
-        if action == "hit":
-            hitting()
+            elif player not in give_up_lst:
+                bet = input(f"{player}, would you like to bet or not-bet or surrender?  Current pts: {name_pt[player]}   ").lower()
+                if bet == "surrender" or bet == "surrend":
+                    print(f"{player} surrender")
+                    give_up_lst.append(player)
 
-        elif action == "stand":
-            print(player, "decides to Stand")
-            remove_lst.remove(player)
+                elif bet == "bet" or bet == "b":
+                    opt = input(f"{player}, would you like to free-bet or all-in?  "
+                                f"Current pts: {name_pt[player]}, chips: {name_chip[player]}   ").lower()
+                    if opt == "free-bet":
+                        amt = int(input(f"{player}, how many chips you want to bet?   You now have: {name_chip[player]} chips   "))
+                        if amt > name_chip[player]:
+                            print(f"{player}, are you kidding me? You are skipped in this round")
 
-        elif action == "surrender":
-            print(player, "decides to surrender, and showing his card", name_card)
-            remove_lst.remove(player)
-        else:
-            print("Sorry, I don't understand.")
+                        elif name_chip == 0:
+                            print(f"{player}, sorry to say that you will be fouled in next round as you have 0 chips")
+                            give_up_lst.append(player)
 
+                        else:
+                            print(f"{player} bet {amt} chips")
+                            bonus += amt
+                            name_chip[player] -= amt
 
-def hit_and_stand_and_bet():
-    spacing()
-    while len(remove_lst) > 0:
-        betting()
-        hit_and_stand()
+                    elif opt == "all-in":
+                        if name_chip == 0:
+                            print(f"{player}, sorry to say that you will be fouled in next round as you have 0 chips")
 
+                        else:
+                            print(f"{player} all-in {name_chip[player]}")
+                            bonus += name_chip[player]
+                            name_chip[player] -= name_chip[player]
+                            give_up_lst.append(player)
 
-def betting():
-    for player in remove_lst:
-        bet = input(player + "you have" + str(name_pt[player]) + "points. Would you like to bet? Yes or No").lower()
-        while bet != "yes" and bet != "no":
-            print("sorry, I don't understand what you mean, please try again!")
-            bet = input(player + "Would you like to bet?").lower()
-        if bet == "yes":
-            question = input("Would you all-in? Yes or no").lower()
-            while question != "no" and question != "yes":
-                print("sorry, I don't understand what you mean, please try again!")
-                question = input("How would you like to all-in? (yes or no)").lower()
+                elif bet == "not-bet" or bet == "n":
+                    print(f"{player} decides not to bet")
+                    give_up_lst.append(player)
 
-            if question == "yes":
-                global amount
-                amount = survivor_chips[player]
-                survivor_chips[player] -= amount
-                print(player, "decides all in, betting: " + str(amount) + " chips")
-                global bonus
-                bonus += amount  # chips collected and betted  will be accumulated as bonus for winner in this round
-
-            elif question == "no":
-                check = input(player + "how many chips would you bet?")
-                while not check.isdigit():
-                    print("I don't understand what you mean, please try again!!")
-                    check = input(player + "how many chips would you bet?")
-                amount = int(check)
-                if amount < survivor_chips[player]:
-                    survivor_chips[player] -= amount
-                    print(player, "has bet: " + str(amount) + " chips")
-                    bonus += amount
-                elif amount > survivor_chips[player]:
-                    print("Since you do not have enough chips, we will default you are calling all-in")
-                    amount = survivor_chips[player]
-                    survivor_chips[player] -= amount
-                    print(player, "decides all in, betting: " + str(amount) + " chips")
-                    bonus += amount
-        elif bet == "no":
-            print(player, "decides not bet")
-
-
-def hitting():
-    for player in remove_lst:
-        draw = random.choice()
-        name_card[player] += "," + draw
-        val = card[draw]
-        if card[draw] == "(1, 11)":
-            if name_pt[player] > 10:
-                pt = 1
-            else:
-                pt = 11
-        else:
-            pt = int(val)
-        card.pop(draw, None)  # drawing without replacement
-        name_pt[player] += pt
-        print(player, "hit, gets ", draw)
-        print(player, ":", name_card[player], " total point ", name_pt[player])
-        if name_pt[player] > 21:
-            remove_lst(player)
-
+    round_winner()
 
 def round_winner():
-    spacing()
+    bust_lst = []
     largest = []
-    winnerlst = []
-    print("\n\nResult")
-    for key, value in name_pt.items():
-        if value > 21:
-            print(key, "Bust")
+    winner = []
+    print("Dealer: Now player, open your cards\nChecking ...")
+    for k, v in name_pt.items():
+        if v > 21:
+            bust_lst.append(k)
             continue
-        largest.append(value)
-        large = max(largest)
-
-    for player in survivor_chips:
+        largest.append(v)
+    print(largest)
+    large = max(largest)
+    print("\n\n")
+    for player in remain_lst:
         if name_pt[player] == large:
-            winnerlst.append(player)
-            print(player, "is the winner, with points:", large)
-            average = int(bonus / len(winnerlst))
-            survivor_chips[player] += average
+            winner.append(player)
 
-    print("Bonus accumulated:", bonus)  # amout of chips as bonus in total
-    print("Distributed winner(s) equally:", average)  # dividing equally if more than one winner
+    if bust_lst:
+        print(f"Unfortunately, folowing player(s) bust: {bust_lst}. \nWinner(s) is(are) {winner}, Congratulations!!")
 
-    for player in name_pt:
-        print(player, "has:", name_card[player], " with total point:", name_pt[player], "Remaining chips:",
-              survivor_chips[player])
+    else:
+        print(f"Luckily, no player bust in this time. \nWinner(s) is(are) {winner}, Congratulations!!")
+    fouling_loser(foul_lst, name_chip)
+    final_winner(bonus, winner)
 
+def fouling_loser(foul_lst, name_chip):
+    for player in remain_lst:
+        if name_chip[player] <= 0:  # fouling a player with 0 chip
+            print(f"{player}, is fouled")
+            foul_lst.append(player)
 
-def fouling_loser():
-    for player in name_pt:
-        if survivor_chips[player] == 0:  # fouling a player with 0 chips
-            print("\n")
-            print(player, "is fouled as no chips remained")
-            survivor_chips.pop(player)
+def final_winner(bonus, winner):
+    lst_ = []
+    win_num = len(winner)
+    print(f"===================== {bonus} ==================")
+    chips_num = np.arange(1, bonus+1)
 
+    for i in chips_num:
+        if i%win_num == 0:
+            lst_.append(i)
+    maxx_ = max(lst_)
+    print(f"{winner} will receive {maxx_/win_num} chips")
+    bonus -= maxx_
 
-def final_winner():
-    if len(survivor_chips) == 1:
-        for k, v in survivor_chips.items():
-            print(k, "is the final winner in this game as others are fouled with", v, "congratulation!!!")
+    for player in winner:
+        name_chip[player] += maxx_/win_num
+
+    if len(foul_lst) == len(name_lst) -1:
+        for player in name_lst:
+            if player not in foul_lst:
+                print(f"The final winner is {player}, who owns {name_chip[player]} ships")
         next_game()
 
-
-def next_round():
-    while True:
-        ask = input("would you like to start a New Round?").lower()
-        if ask == "yes":
-            consecutive_round()
-        elif ask == "no":
-            print("See You")
-            break
-        else:
-            print("Sorry, I don't understand. Please try again")
-
+    else:
+        print("Neext Round will be started on 5 seconds later\n\n")
+        time.sleep(5)
+        new_round()
 
 def next_game():
     while True:
         ask = input("would you like to start a New Game?").lower()
         if ask == "yes":
-            initial_round()
+            restore()
         elif ask == "no":
             print("See You")
-            break
+            quit()
         else:
             print("Sorry, I don't understand. Please try again")
 
-
-#  Game stage
-def pre_hit_and_stand():
-    starting()
-    final_winner()
-    drawing()
-    drawing()
-
-
-def post_hit_and_stand():
-    round_winner()
-    fouling_loser()
-    final_winner()
-    next_round()
-
-
-# Game Flow
-def initial_round():
+def main():
     restore()
-    player_lst()
-    pre_hit_and_stand()
-    hit_and_stand_and_bet()
-    post_hit_and_stand()
 
-
-def consecutive_round():
-    restore()
-    pre_hit_and_stand()
-    hit_and_stand_and_bet()
-    post_hit_and_stand
-
-
-initial_round()
+main()
