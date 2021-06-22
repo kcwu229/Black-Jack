@@ -1,134 +1,92 @@
 import random
-user = input("Hello, What's your name?")
+import time
+user = input("Hello, What's your name?    ")
 
-def restore_card():
-    global card
-    card = dict()
+
+def setting():
+    global deck,  name_lst, name_pt, name_card
     face = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
-    fv = ["(1, 11)", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10", "10", "10"]
-    for s in ["♠", "♥", "♣", "♦"]:
-        for i in range(13):
-            card[s + face[i]] = fv[i]
-
-def restore_lst():
-    global name_lst, name_pt, name_card, sum, remove_lst
-    sum = 0
+    suit = ["♠", "♥", "♣", "♦"]
+    deck = [(s + " " + f) for s in suit for f in face]
     name_lst = ["🤴", "🤵", "👳", "💰", user]
-    remove_lst = ["🤴", "🤵", "👳", "💰", user]
     name_pt = {}
     name_card = {}
 
-def spacing():
-    print("\n")
+def draw(player):
+    random.shuffle(deck)
+    global card
+    time.sleep(0.5)
+    card = deck.pop()
+    if player not in name_card:
+        name_card[player] = card
+    elif player in name_card:
+        name_card[player] += ",  " + card
+    point(player, card)
 
-def drawing():
-    for player in name_lst:
-        global draw     # make a local variable global
-        draw = random.choice(list(card))
-        if player not in name_card:
-            name_card[player] = draw
-        elif player in name_card:
-            name_card[player] += "," + draw
-        val = card[draw]
-        if player not in name_pt:
-            name_pt[player] = 0
-        if val == "(1, 11)":
-            if name_pt[player] > 10:
-                pt = 1
-            else:
-                pt = 11
+def point(player, card):
+    time.sleep(0.5)
+    if player not in name_pt:
+        name_pt[player] = 0
+    num = card.split(" ")[-1]
+    if num.isdigit():
+        pt = int(num)
+    else:
+        if num == "A":
+            pt = 11
         else:
-            pt = int(val)
-        card.pop(draw, None)  # drawing without replacement
-        name_pt[player] += pt
+            pt = 10
+    name_pt[player] += pt
 
-def hitting():
-    for player in remove_lst:
-        draw = random.choice(list(card))
-        name_card[player] += "," + draw
-        val = card[draw]
-        if card[draw] == "(1, 11)":
-            if name_pt[player] > 10:
-                pt = 1
-            else:
-                pt = 11
-        else:
-            pt = int(val)
-        card.pop(draw, None)  # drawing without replacement
-        name_pt[player] += pt
-        if player == user:
-            print(player, "hit, gets", draw)
-            print(player, ":", name_card[player], "total point", name_pt[player])
-        else:
-            print(player, "hit, gets", draw)
-
-def showing_card():
-    spacing()
-    print("dealer is now distributing the first card")
-    drawing()
-    for player in name_lst:
-        print(player, ":", name_card[player], "total point", name_pt[player])
-
-def not_showing_card():
-    spacing()
-    print("dealer is now distributing the second card")
-    for player in name_lst:
-        if player != user:
-            print(player, ": ???", "with point: ???")
-            continue
-        drawing()
-        print(player, ":", name_card[player], "total point", name_pt[player])
-
-def hit_and_stand():
-    spacing()
-    while len(remove_lst) > 0:
-        action = input("stand or hit?       :").lower()
-        if action == "hit":
-            for player in remove_lst:
-                if player != user:
-                    if name_pt[player] >= 16:
-                        print(player, ": stand")
-                        remove_lst.remove(player)
-            hitting()
-        elif action == "stand":
-            while len(remove_lst) > 0:
-                for player in remove_lst:
-                    if player != user:
-                        if name_pt[player] >= 16:
-                            print(player, ": stand")
-                            remove_lst.remove(player)
-                            continue
-                    elif player == user:
-                        if name_pt[player] >= 16:
-                            print(player, ": stand")
-                            remove_lst.remove(player)
-                            continue
-                    elif player == user:
-                        if name_pt[player] < 16:
-                            print(player, ": stand")
-                            remove_lst.remove(player)
-                            continue
-                hitting()
-        else:
-            print("Sorry, I don't understand.")
+def hit_stand():
+    stand_dict = {}
+    while len(stand_dict) < len(name_lst):
+        print("\n\nHit or Stand?")
+        for player in name_lst:
+            time.sleep(0.5)
+            if player == user:
+                if player not in stand_dict:
+                    ask = input(f" {player}, would you like to hit or stand?   (Current pts:{name_pt[player]})").lower()
+                    if ask == "s" or ask == "stand":
+                        print(f"{player} stands")
+                        stand_dict[player] = "Stand"
+                    elif ask == "h" or ask == "hit":
+                        draw(player)
+                        print(f"{player} hits, gets {card}")
+                    else:
+                        print(f"{player}, since you do not follow my instruction, movement of this round is skipped!")
+            elif player != user:
+                if player not in stand_dict:
+                    if name_pt[player] < 15:
+                        draw(player)
+                        print(f"{player} hits, gets {card}")
+                    else:
+                        print(f"{player} stands")
+                        stand_dict[player] = "Stand"
 
 def choosing_winner():
-    spacing()
+    bust_lst = []
     largest = []
-    print("Result")
-    for key, value in name_pt.items():
-        if value > 21:
-            print(key, "Bust")
+    winner = []
+    print("Dealer: Now player, open your cards\nChecking ...")
+    time.sleep(0.5)
+    for k, v in name_pt.items():
+        if v > 21:
+            bust_lst.append(k)
             continue
-        largest.append(value)
-        large = max(largest)
-
+        largest.append(v)
+    large = max(largest)
+    print("\n\n")
     for player in name_lst:
         if name_pt[player] == large:
-            print(player, "is the winner, with points:", large)
-        print(player, "has:", name_card[player], "             with total point:", name_pt[player])
+            winner.append(player)
+    if bust_lst:
+        print(f"Unfortunately, folowing player(s) bust: {bust_lst}. \nWinner(s) is(are) {winner}, Congratulations!!")
+    else:
+        print(f"Luckily, no player bust in this time. \nWinner(s) is(are) {winner}, Congratulations!!")
+    print(f"Result: {name_pt}")
 
 def again():
+    count = 0
     while True:
         try:
             again = input("would you like to start a New Round?").lower()
@@ -136,16 +94,32 @@ def again():
                 main()
             elif again == "no":
                 print("See U")
-                break
+                quit()
         except:
             print("Sorry, I don't understand. Please try again")
+            count += 1
+            if count == 3:
+                print("Dealer: you are fooling me! You are no longer to be allowed to get in this casino")
+
 
 def main():
-    restore_card()
-    restore_lst()
-    showing_card()
-    not_showing_card()
-    hit_and_stand()
+    setting()
+    print("\nDealer is now distributing cards")
+    print("Player,      Card in hand,      Points")
+    for player in name_lst:
+        draw(player)
+        print(f"{player},              {name_card[player]},            {name_pt[player]}")
+
+    print("\nDealer is now distributing cards")
+    print("Player,      Card in hand,      Points")
+    for player in name_lst:
+        if player == user:
+            draw(player)
+            print(f"{player},              {name_card[player]},         {name_pt[player]}")
+        else:
+            print(f"{player},              {name_card[player]} + ? ,       {name_pt[player]} + ?")
+            draw(player)
+    hit_stand()
     choosing_winner()
     again()
 
